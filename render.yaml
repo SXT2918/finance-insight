@@ -1,0 +1,35 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# One web service, one persistent disk for the SQLite database + cached chart images.
+# Single gunicorn worker on purpose: app/db.py opens a plain sqlite3 connection with no
+# WAL mode configured, so multiple processes writing at once risks "database is locked"
+# errors. --threads gives it real concurrency for reads/light traffic without that risk.
+#
+# The daily ingestion job (jobs/daily_job.py) is NOT scheduled here yet — Render Cron Job
+# services can't mount the same persistent disk as this web service, so automating it needs
+# a decision first (in-process scheduler vs. an authenticated HTTP trigger). Until then, run
+# it on demand from this service's shell/one-off job feature in the Render dashboard, which
+# does share the disk.
+
+services:
+  - type: web
+    name: finance-insight
+    runtime: python
+    plan: starter
+    buildCommand: pip install .
+    startCommand: gunicorn --workers 1 --threads 4 --timeout 120 wsgi:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/finance_insight.db
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: QUOTE_STALE_AFTER_HOURS
+        value: "24"
+      - key: NEWS_STALE_AFTER_HOURS
+        value: "24"
+    disk:
+      name: finance-insight-data
+      mountPath: /var/data
+      sizeGB: 1
