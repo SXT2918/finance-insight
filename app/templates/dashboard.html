@@ -31,6 +31,48 @@
       <div class="stale-note" id="staleNote" style="display:none">Showing last cached quote — live data unavailable right now.</div>
     </div>
   </div>
+
+  <div class="idx-strip">
+    {% for idx in indices %}
+    <div class="idx-card">
+      <div class="name">{{ idx.label }}</div>
+      <div class="px num">{{ '%.2f'|format(idx.price) if idx.price is not none else '—' }}</div>
+      <div class="chg num {{ 'd-up' if idx.d1 is not none and idx.d1 >= 0 else 'd-down' if idx.d1 is not none else '' }}">
+        {{ '%+.2f%%'|format(idx.d1) if idx.d1 is not none else '—' }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sec-head" style="margin-top:44px">
+    <h2 style="font-size:1.15rem">Today's movers</h2>
+    <div class="rule"></div>
+    <span class="meta">from your watchlist</span>
+  </div>
+  <div class="movers-grid">
+    <div class="movers-col">
+      <h4>Top gainers</h4>
+      {% for m in movers.gainers %}
+      <div class="mover-row">
+        <span><span class="sym">{{ m.symbol }}</span><span class="nm">{{ m.name }}</span></span>
+        <span class="num d-up">{{ '%+.2f%%'|format(m.d1) }}</span>
+      </div>
+      {% else %}
+      <p class="meta">No data yet.</p>
+      {% endfor %}
+    </div>
+    <div class="movers-col">
+      <h4>Top losers</h4>
+      {% for m in movers.losers %}
+      <div class="mover-row">
+        <span><span class="sym">{{ m.symbol }}</span><span class="nm">{{ m.name }}</span></span>
+        <span class="num d-down">{{ '%+.2f%%'|format(m.d1) }}</span>
+      </div>
+      {% else %}
+      <p class="meta">No data yet.</p>
+      {% endfor %}
+    </div>
+  </div>
 </section>
 {% endblock %}
 

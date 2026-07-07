@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, render_template, request
 
 from app import db
 from app.services import chart_data
+from app.services.dashboard_data import get_index_snapshots, get_movers
 
 bp = Blueprint("dashboard", __name__)
 
@@ -17,6 +18,8 @@ def index():
         symbol=INDEX_SYMBOL,
         initial_points=points,
         initial_stale=stale,
+        indices=get_index_snapshots(conn),
+        movers=get_movers(conn),
     )
 
 

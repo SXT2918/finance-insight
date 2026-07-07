@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import db
 from app.config import Config
 from app.services import indicators, market_data
+from app.services.dashboard_data import INDEX_SYMBOLS
 from app.services.fundamentals import refresh_fundamentals_for_watchlist
 from app.services.macro_calendar import refresh_earnings_events
 from app.services.news import ingest_general_market_news, ingest_news_for_watchlist
@@ -28,7 +29,8 @@ BENCHMARK = "SPY"
 def symbols_to_refresh(conn) -> "list[str]":
     watchlist = [r[0] for r in conn.execute("SELECT symbol FROM ticker WHERE is_watchlist = 1")]
     sector_etfs = [r[0] for r in conn.execute("SELECT etf_symbol FROM sector_etf")]
-    symbols = list(dict.fromkeys(watchlist + sector_etfs + [BENCHMARK]))
+    indices = [symbol for _, symbol in INDEX_SYMBOLS]
+    symbols = list(dict.fromkeys(watchlist + sector_etfs + indices + [BENCHMARK]))
     return symbols
 
 

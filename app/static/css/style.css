@@ -101,6 +101,19 @@ header{
 .chart-foot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:6px}
 .stale-note{font-size:.72rem;color:var(--amber);margin-top:6px}
 
+/* ---------- index strip + movers ---------- */
+.idx-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:34px}
+.idx-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);padding:14px 16px}
+.idx-card .name{font-size:.78rem;color:var(--muted);font-weight:600}
+.idx-card .px{font-size:1.05rem;font-weight:600;margin-top:4px}
+.idx-card .chg{font-size:.82rem;font-weight:600;margin-top:2px}
+.movers-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}
+.movers-col h4{font-size:.85rem;font-weight:700;margin-bottom:8px;color:var(--ink-2)}
+.mover-row{display:flex;align-items:baseline;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:.88rem}
+.mover-row:last-child{border-bottom:0}
+.mover-row .sym{font-weight:700}
+.mover-row .nm{color:var(--muted);font-size:.76rem;margin-left:6px}
+
 /* ---------- sections ---------- */
 section.page{padding:44px 0 10px;min-height:60vh}
 .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:18px}
