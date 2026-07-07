@@ -140,7 +140,7 @@ td.r,th.r{text-align:right}
 /* analysis */
 .an-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
 .an-tab{
-  font-family:var(--mono);font-size:.85rem;font-weight:600;padding:8px 16px;border-radius:var(--r);
+  display:inline-block;font-family:var(--mono);font-size:.85rem;font-weight:600;padding:8px 16px;border-radius:var(--r);
   background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;
   transition:all .15s ease;
 }

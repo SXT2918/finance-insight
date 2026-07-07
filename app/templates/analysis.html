@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Analysis — {{ active_symbol }}{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Featured analysis</h2>
+    <div class="rule"></div>
+    <span class="meta">bull &amp; bear, side by side</span>
+  </div>
+  <div class="an-tabs">
+    {% for t in tickers %}
+    <a class="an-tab {{ 'on' if t == active_symbol else '' }}" href="{{ url_for('analysis.ticker', symbol=t) }}">{{ t }}</a>
+    {% endfor %}
+  </div>
+  <div class="an-grid">
+    <div class="an-head">
+      <span class="px num">{{ active_symbol }}  ${{ '%.2f'|format(data.price) }}</span>
+      <div class="chips">
+        {% for label, cls in data.chips %}
+        <span class="chip {{ cls }}">{{ label }}</span>
+        {% endfor %}
+      </div>
+      <button class="trade-btn" data-ticker="{{ active_symbol }}" style="margin-left:auto">Trade →</button>
+    </div>
+    <div class="case bull">
+      <h3><span class="arrow">▲</span> The bull case</h3>
+      <ul>{% for b in data.bull %}<li>{{ b }}</li>{% endfor %}</ul>
+    </div>
+    <div class="case bear">
+      <h3><span class="arrow">▼</span> The bear case</h3>
+      <ul>{% for b in data.bear %}<li>{{ b }}</li>{% endfor %}</ul>
+    </div>
+    <div class="an-note">Cases are assembled from indicator readings only for now — tagged headlines join once
+      news ingestion is built. Arguments to weigh, not recommendations.</div>
+  </div>
+</section>
+{% endblock %}

@@ -2,6 +2,8 @@
 
 import sqlite3
 
+from app.services.price_stats import get_price_and_changes
+
 
 def _sparkline_points(closes: "list[float]", width=112, height=28, pad=2) -> str:
     if len(closes) < 2:
@@ -25,13 +27,9 @@ def build_watchlist_rows(conn: sqlite3.Connection) -> "list[dict]":
     rows = []
     for t in tickers:
         symbol = t["symbol"]
-        closes = conn.execute(
-            "SELECT date, close FROM ohlcv WHERE symbol = ? ORDER BY date DESC LIMIT 30",
-            (symbol,),
-        ).fetchall()
-        closes = list(reversed(closes))  # oldest -> newest
+        stats = get_price_and_changes(conn, symbol)
 
-        if not closes:
+        if stats is None:
             rows.append(
                 {
                     "symbol": symbol, "name": t["name"], "price": None, "d1": None, "m1": None,
@@ -40,29 +38,20 @@ def build_watchlist_rows(conn: sqlite3.Connection) -> "list[dict]":
             )
             continue
 
-        close_vals = [c["close"] for c in closes]
-        price = close_vals[-1]
-        d1 = (price / close_vals[-2] - 1) * 100 if len(close_vals) >= 2 else None
-
-        month_ago = conn.execute(
-            "SELECT close FROM ohlcv WHERE symbol = ? ORDER BY date DESC LIMIT 1 OFFSET 21",
-            (symbol,),
-        ).fetchone()
-        m1 = (price / month_ago["close"] - 1) * 100 if month_ago else None
-
         rsi_row = conn.execute(
             "SELECT rsi14 FROM indicator WHERE symbol = ? ORDER BY date DESC LIMIT 1",
             (symbol,),
         ).fetchone()
         rsi = rsi_row["rsi14"] if rsi_row else None
+        close_vals = stats["close_vals"]
 
         rows.append(
             {
                 "symbol": symbol,
                 "name": t["name"],
-                "price": price,
-                "d1": d1,
-                "m1": m1,
+                "price": stats["price"],
+                "d1": stats["d1"],
+                "m1": stats["m1"],
                 "rsi": rsi,
                 "spark_points": _sparkline_points(close_vals),
                 "spark_up": close_vals[-1] >= close_vals[0],
