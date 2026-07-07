@@ -33,5 +33,80 @@
     <div class="an-note">Cases are assembled from indicator readings only for now — tagged headlines join once
       news ingestion is built. Arguments to weigh, not recommendations.</div>
   </div>
+
+  <div class="desk-head">
+    <h3>AI research desk</h3>
+    <span class="meta">four roles, one verdict — built from verified indicator &amp; news data</span>
+    <form method="post" action="{{ url_for('analysis.desk_generate', symbol=active_symbol) }}" id="deskForm">
+      <button class="btn btn-primary" type="submit">{{ 'Regenerate' if desk else 'Generate' }} desk report</button>
+    </form>
+  </div>
+  <div id="deskBody">
+    {% if desk %}
+    <div class="desk">
+      {% for role, text in desk.roles %}
+      <div class="role"><div class="rname">{{ role }}</div><div class="rtext">{{ text }}</div></div>
+      {% endfor %}
+      <div class="role pm">
+        <div class="rname">Portfolio Manager</div>
+        <div>
+          {% set rating_cls = {'Overweight': 'over', 'Neutral': 'neutral', 'Underweight': 'under'} %}
+          <div class="pm-line">
+            <span class="rating {{ rating_cls.get(desk.pm.rating, 'neutral') }}">{{ desk.pm.rating.upper() }}</span>
+            <span class="pm-hz">horizon: {{ desk.pm.horizon }}</span>
+          </div>
+          <div class="rtext">{{ desk.pm.thesis }}</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:var(--muted);margin-top:8px">Generated {{ desk.generated_date }} — educational synthesis, not investment advice.</p>
+    {% else %}
+    <div class="desk-empty">No report generated for {{ active_symbol }} today. Generating calls the Anthropic
+      API once per role plus a portfolio-manager synthesis, then caches the result for the rest of the day.</div>
+    {% endif %}
+  </div>
+
+  <div class="desk-head">
+    <h3>Quality scorecard</h3>
+    <span class="meta">score it yourself — AI suggestion shown for comparison</span>
+    <form method="post" action="{{ url_for('analysis.scorecard_ai_suggest', symbol=active_symbol) }}">
+      <button class="btn btn-ghost" type="submit" style="padding:8px 16px;font-size:.85rem">Get AI suggestion</button>
+    </form>
+  </div>
+  <form class="panel" method="post" action="{{ url_for('analysis.scorecard_save', symbol=active_symbol) }}">
+    {% set user_total = namespace(v=0) %}
+    {% set ai_total = namespace(v=0, n=0) %}
+    {% for dim in scorecard %}
+    <div class="score-row">
+      <div class="dim">{{ dim.label }}<small>{{ dim.desc }}</small></div>
+      <div class="ai">AI: {{ dim.ai_score if dim.ai_score is not none else '—' }}/3</div>
+      <select name="{{ dim.key }}" aria-label="Your score for {{ dim.label }}">
+        <option value="" {{ 'selected' if dim.user_score is none else '' }}>—</option>
+        {% for v in [0, 1, 2, 3] %}
+        <option value="{{ v }}" {{ 'selected' if dim.user_score == v else '' }}>{{ v }} / 3</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if dim.user_score is not none %}{% set user_total.v = user_total.v + dim.user_score %}{% endif %}
+    {% if dim.ai_score is not none %}{% set ai_total.v = ai_total.v + dim.ai_score %}{% set ai_total.n = ai_total.n + 1 %}{% endif %}
+    {% endfor %}
+    <div class="score-total">
+      <span>Your score <b>{{ user_total.v }}</b><span style="color:var(--muted)">/18</span></span>
+      <span class="ai-t">
+        {% if ai_total.n == 0 %}AI suggestion: not generated yet
+        {% else %}AI suggestion: {{ ai_total.v }}/18{{ '' if ai_total.n == 6 else ' (partial)' }} — disagree freely, that's the point
+        {% endif %}
+      </span>
+    </div>
+    <div style="margin-top:14px"><button class="btn btn-primary" type="submit">Save my scores</button></div>
+  </form>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('deskForm').addEventListener('submit', () => {
+  document.getElementById('deskBody').innerHTML = '<div class="skel"><i></i><i></i><i></i><i></i><i></i></div>';
+});
+</script>
 {% endblock %}

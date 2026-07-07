@@ -229,6 +229,7 @@ td.r,th.r{text-align:right}
 .rating.over{background:var(--up-dim);color:var(--up-ink)}
 .rating.neutral{background:rgba(153,106,0,.10);color:var(--amber)}
 .rating.market{background:var(--surface);color:var(--ink-2);border:1px solid var(--border)}
+.rating.under{background:var(--down-dim);color:var(--down-ink)}
 .pm-hz{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 .desk-empty{
   border:1px dashed var(--border);border-radius:var(--r);padding:26px;text-align:center;
