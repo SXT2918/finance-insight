@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Store, Analyze, Anticipate{% endblock %}
+{% block content %}
+<section class="view">
+  <div class="hero">
+    <div>
+      <h1>Store. Analyze.<br><span class="dim">Anticipate.</span></h1>
+      <p class="lede">Your market data, turned into judgment. Track a watchlist, read the day's tape,
+        weigh the bull and bear case — then log your call and let the scoreboard keep you honest.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="{{ url_for('watchlist.index') }}">Open watchlist</a>
+        <a class="btn btn-ghost" href="{{ url_for('brief.index') }}">Read today's brief</a>
+      </div>
+      <div class="hero-note">Educational project — not investment advice. Nothing here executes real trades.</div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <span class="t">{{ symbol }}</span>
+        <span class="big num" id="idxBig">—</span>
+        <span class="chg num" id="idxChg">—</span>
+        <div class="tf-row" role="tablist" aria-label="Timeframe">
+          <button class="tf on" data-tf="1D">1D</button>
+          <button class="tf" data-tf="1W">1W</button>
+          <button class="tf" data-tf="1M">1M</button>
+          <button class="tf" data-tf="1Y">1Y</button>
+        </div>
+      </div>
+      <svg id="mainChart" viewBox="0 0 640 260" preserveAspectRatio="none" role="img" aria-label="{{ symbol }} chart"></svg>
+      <div class="chart-foot"><span id="chartLo">—</span><span id="chartHi">—</span></div>
+      <div class="stale-note" id="staleNote" style="display:none">Showing last cached quote — live data unavailable right now.</div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const DASH_SYMBOL = {{ symbol|tojson }};
+let dashState = { points: {{ initial_points|tojson }}, stale: {{ initial_stale|tojson }} };
+
+function renderDash(tf) {
+  const svg = document.getElementById('mainChart');
+  const stats = drawLineChart(svg, dashState.points);
+  document.getElementById('staleNote').style.display = dashState.stale ? 'block' : 'none';
+  if (!stats) {
+    document.getElementById('idxBig').textContent = 'n/a';
+    document.getElementById('idxChg').textContent = 'no data';
+    document.getElementById('chartLo').textContent = '';
+    document.getElementById('chartHi').textContent = '';
+    return;
+  }
+  const chg = (stats.last / stats.first - 1) * 100;
+  document.getElementById('idxBig').textContent = fmt(stats.last);
+  const chgEl = document.getElementById('idxChg');
+  chgEl.textContent = `${chg >= 0 ? '+' : ''}${fmt(chg)}%  ${tf}`;
+  chgEl.className = 'chg num ' + (chg >= 0 ? 'd-up' : 'd-down');
+  const first = dashState.points[0], last = dashState.points[dashState.points.length - 1];
+  document.getElementById('chartLo').textContent = (first ? first.t : '') + '  ·  low ' + fmt(stats.lo, 0);
+  document.getElementById('chartHi').textContent = 'high ' + fmt(stats.hi, 0) + '  ·  ' + (last ? last.t : '');
+}
+
+document.querySelectorAll('.tf').forEach((b) => b.addEventListener('click', async () => {
+  document.querySelectorAll('.tf').forEach((x) => x.classList.remove('on'));
+  b.classList.add('on');
+  const tf = b.dataset.tf;
+  const resp = await fetch(`/api/chart/${DASH_SYMBOL}?tf=${tf}`);
+  const data = await resp.json();
+  dashState = data;
+  renderDash(tf);
+}));
+
+renderDash('1D');
+</script>
+{% endblock %}

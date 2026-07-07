@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Watchlist{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Watchlist</h2>
+    <div class="rule"></div>
+    <span class="meta">{{ rows|length }} symbols</span>
+  </div>
+  <div class="watch">
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th><th>Last 30 sessions</th>
+          <th class="r">Price</th><th class="r">1D</th><th class="r">1M</th>
+          <th class="r">RSI(14)</th><th class="r">News sentiment</th><th class="r"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for w in rows %}
+        <tr>
+          <td><span class="tk">{{ w.symbol }}</span><br><span class="tk-name">{{ w.name }}</span></td>
+          <td>
+            {% if w.spark_points %}
+            <svg width="120" height="32" viewBox="0 0 120 32" aria-hidden="true">
+              <polyline points="{{ w.spark_points }}" fill="none" stroke="{{ 'var(--up)' if w.spark_up else 'var(--down)' }}" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+            {% else %}
+            <span class="meta">no data yet</span>
+            {% endif %}
+          </td>
+          <td class="r num">{{ '%.2f'|format(w.price) if w.price is not none else '—' }}</td>
+          <td class="r num {{ 'd-up' if w.d1 is not none and w.d1 >= 0 else 'd-down' if w.d1 is not none else '' }}">
+            {{ ('+' if w.d1 >= 0 else '') ~ '%.2f'|format(w.d1) ~ '%' if w.d1 is not none else '—' }}
+          </td>
+          <td class="r num {{ 'd-up' if w.m1 is not none and w.m1 >= 0 else 'd-down' if w.m1 is not none else '' }}">
+            {{ ('+' if w.m1 >= 0 else '') ~ '%.1f'|format(w.m1) ~ '%' if w.m1 is not none else '—' }}
+          </td>
+          <td class="r">
+            {% if w.rsi is not none %}
+            <span class="rsi {{ 'hot' if w.rsi >= 65 or w.rsi <= 35 else '' }}">{{ '%.0f'|format(w.rsi) }}</span>
+            {% else %}
+            <span class="rsi">—</span>
+            {% endif %}
+          </td>
+          <td class="r"><span class="sent">— <span class="meta">(coming soon)</span></span></td>
+          <td class="r"><button class="trade-btn" data-ticker="{{ w.symbol }}">Trade →</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

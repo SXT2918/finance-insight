@@ -1,7 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask
 
 from app.config import Config
 from app import db
+from app.services.tape import get_tape
 
 
 def create_app(config_object=Config):
@@ -11,15 +12,20 @@ def create_app(config_object=Config):
 
     db.init_app(app)
 
-    @app.route("/")
-    def index():
-        conn = db.get_db()
-        tickers = conn.execute(
-            "SELECT symbol, name FROM ticker WHERE is_watchlist = 1 ORDER BY symbol"
-        ).fetchall()
-        fetch_log = conn.execute(
-            "SELECT source, fetched_at, status FROM fetch_log ORDER BY fetched_at DESC LIMIT 20"
-        ).fetchall()
-        return render_template("index.html", tickers=tickers, fetch_log=fetch_log)
+    from app.blueprints.dashboard import bp as dashboard_bp
+    from app.blueprints.watchlist import bp as watchlist_bp
+    from app.blueprints.stubs import sectors_bp, analysis_bp, brief_bp, journal_bp
+
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(watchlist_bp)
+    app.register_blueprint(sectors_bp)
+    app.register_blueprint(analysis_bp)
+    app.register_blueprint(brief_bp)
+    app.register_blueprint(journal_bp)
+
+    @app.context_processor
+    def inject_tape():
+        items, stale = get_tape()
+        return {"tape_items": items, "tape_stale": stale}
 
     return app

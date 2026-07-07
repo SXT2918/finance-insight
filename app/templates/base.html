@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Insight — {% block title %}{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="{{ url_for('dashboard.index') }}">Finance <b>Insight</b></a>
+    <nav class="nav-links">
+      <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.blueprint == 'dashboard' else '' }}">Dashboard</a>
+      <a href="{{ url_for('watchlist.index') }}" class="{{ 'active' if request.blueprint == 'watchlist' else '' }}">Watchlist</a>
+      <a href="{{ url_for('sectors.index') }}" class="{{ 'active' if request.blueprint == 'sectors' else '' }}">Sectors</a>
+      <a href="{{ url_for('analysis.index') }}" class="{{ 'active' if request.blueprint == 'analysis' else '' }}">Analysis</a>
+      <a href="{{ url_for('brief.index') }}" class="{{ 'active' if request.blueprint == 'brief' else '' }}">Daily brief</a>
+      <a href="{{ url_for('journal.index') }}" class="{{ 'active' if request.blueprint == 'journal' else '' }}">Journal</a>
+    </nav>
+    <div class="nav-right">
+      <span><span class="live-dot{{ ' stale' if tape_stale else '' }}"></span>{{ 'Data may be stale' if tape_stale else 'Live' }}</span>
+      <span class="num" id="clock">—</span>
+    </div>
+  </div>
+</header>
+
+<div class="tape" aria-label="Market tape">
+  <div class="tape-track">
+    {% for _ in range(2) %}
+    <div class="tape-group">
+      {% for item in tape_items %}
+      <div class="tape-item">
+        <span class="sym">{{ item.label }}</span>
+        <span class="px num">{{ item.price }}</span>
+        {% if item.chg_pct is not none %}
+        <span class="num {{ 'd-up' if item.chg_pct >= 0 else 'd-down' }}">{{ '+' if item.chg_pct >= 0 else '' }}{{ '%.2f'|format(item.chg_pct) }}%</span>
+        {% else %}
+        <span class="num d-flat">—</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<main class="wrap">
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span class="logo">Finance <b style="color:var(--accent)">Insight</b></span>
+    <p>A personal project for learning market analysis. Nothing here is investment advice; simulated
+      portfolios and paper trades are not real money. Built with the boring conviction that scoring
+      your own calls beats predicting anyone else's.</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
