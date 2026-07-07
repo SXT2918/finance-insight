@@ -21,6 +21,7 @@
       <a href="{{ url_for('analysis.index') }}" class="{{ 'active' if request.blueprint == 'analysis' else '' }}">Analysis</a>
       <a href="{{ url_for('brief.index') }}" class="{{ 'active' if request.blueprint == 'brief' else '' }}">Daily brief</a>
       <a href="{{ url_for('journal.index') }}" class="{{ 'active' if request.blueprint == 'journal' else '' }}">Journal</a>
+      <a href="{{ url_for('portfolio.index') }}" class="{{ 'active' if request.blueprint == 'portfolio' else '' }}">Portfolio</a>
     </nav>
     <div class="nav-right">
       <span><span class="live-dot{{ ' stale' if tape_stale else '' }}"></span>{{ 'Data may be stale' if tape_stale else 'Live' }}</span>

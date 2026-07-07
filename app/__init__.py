@@ -19,6 +19,7 @@ def create_app(config_object=Config):
     from app.blueprints.brief import bp as brief_bp
     from app.blueprints.media import bp as media_bp
     from app.blueprints.journal import bp as journal_bp
+    from app.blueprints.portfolio import bp as portfolio_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(watchlist_bp)
@@ -27,6 +28,7 @@ def create_app(config_object=Config):
     app.register_blueprint(brief_bp)
     app.register_blueprint(media_bp)
     app.register_blueprint(journal_bp)
+    app.register_blueprint(portfolio_bp)
 
     @app.context_processor
     def inject_tape():

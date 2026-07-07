@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Paper portfolio</h2>
+    <div class="rule"></div>
+    <span class="meta">practice with fake cash, real prices</span>
+  </div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:18px">Simulated only — no real money, no live
+    execution. Fills use the latest stored closing price, not real-time intraday quotes. A good place to
+    practice position sizing and selling discipline without risking anything, especially when the real
+    market feels shaky.</p>
+
+  <div class="vs">
+    <div class="v">
+      <div class="who">CASH</div>
+      <div class="ret">${{ '%.2f'|format(cash) }}</div>
+      <div class="sub">of ${{ '%.0f'|format(starting_cash) }} starting</div>
+    </div>
+    <div class="v">
+      <div class="who">TOTAL VALUE</div>
+      <div class="ret">${{ '%.2f'|format(nav) }}</div>
+      <div class="sub">cash + open positions</div>
+    </div>
+    <div class="v {{ 'lead' if return_pct is not none and return_pct >= 0 else '' }}">
+      <div class="who">RETURN</div>
+      <div class="ret {{ 'd-up' if return_pct is not none and return_pct >= 0 else 'd-down' if return_pct is not none else '' }}">
+        {{ '%+.2f%%'|format(return_pct) if return_pct is not none else '+0.00%' }}
+      </div>
+      <div class="sub">since first trade</div>
+    </div>
+  </div>
+
+  <div class="jr-sub">Buy</div>
+  <form class="panel" method="post" action="{{ url_for('portfolio.buy') }}" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:26px">
+    <label style="font-size:.8rem;color:var(--muted)">Symbol
+      <select name="symbol" required style="display:block;margin-top:4px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+        {% for s in symbols %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+    </label>
+    <label style="font-size:.8rem;color:var(--muted)">Amount ($)
+      <input type="number" name="size_usd" min="1" step="0.01" value="500" required
+        style="display:block;margin-top:4px;width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+    </label>
+    <button class="btn btn-primary" type="submit">Buy</button>
+  </form>
+
+  <div class="jr-sub">Open positions</div>
+  <div class="watch">
+    <table>
+      <thead><tr><th>Symbol</th><th>Opened</th><th class="r">Cost basis</th><th class="r">Shares</th><th class="r">P&amp;L</th><th class="r"></th></tr></thead>
+      <tbody>
+        {% for p in positions %}
+        <tr>
+          <td class="tk">{{ p.symbol }}</td>
+          <td class="num" style="color:var(--muted);font-size:.8rem">{{ p.trade_date }}</td>
+          <td class="r num">${{ '%.2f'|format(p.size_usd) }} @ ${{ '%.2f'|format(p.fill_price) }}</td>
+          <td class="r num" style="font-size:.85rem">{{ '%.5f'|format(p.shares) }}</td>
+          <td class="r num {{ 'd-up' if p.pnl_pct is not none and p.pnl_pct >= 0 else 'd-down' if p.pnl_pct is not none else '' }}">
+            {{ '%+.1f%%'|format(p.pnl_pct) if p.pnl_pct is not none else '—' }}
+          </td>
+          <td class="r">
+            <form method="post" action="{{ url_for('portfolio.close', position_id=p.id) }}">
+              <button class="trade-btn" type="submit">Close</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:24px">No open positions — buy something above to get started.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="jr-sub">Trade history</div>
+  <div class="watch">
+    <table>
+      <thead><tr><th>Trade</th><th>Date</th><th class="r">Size</th><th class="r">Fill</th><th class="r">P&amp;L</th></tr></thead>
+      <tbody>
+        {% for t in trades %}
+        <tr>
+          <td class="tk" style="font-size:.9rem">{{ t.symbol }} &middot; {{ t.action }}</td>
+          <td class="num" style="color:var(--muted);font-size:.8rem">{{ t.trade_date }}</td>
+          <td class="r num" style="font-size:.85rem">${{ '%.2f'|format(t.size_usd) }}</td>
+          <td class="r num" style="font-size:.8rem;color:var(--muted)">{{ '%.5f'|format(t.shares) }} sh @ {{ '%.2f'|format(t.fill_price) }}</td>
+          <td class="r num {{ 'd-up' if t.pnl_pct is not none and t.pnl_pct >= 0 else 'd-down' if t.pnl_pct is not none else '' }}" style="font-size:.85rem">
+            {{ '%+.1f%%'|format(t.pnl_pct) if t.pnl_pct is not none else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">No trades yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

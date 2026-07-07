@@ -52,6 +52,28 @@ def migrate(conn: sqlite3.Connection) -> None:
                 conn.execute(f"ALTER TABLE ticker ADD COLUMN {col} {col_type}")
         conn.commit()
 
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS user_trade (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol      TEXT NOT NULL,
+            action      TEXT NOT NULL CHECK (action IN ('buy', 'close')),
+            trade_date  TEXT NOT NULL,
+            size_usd    REAL NOT NULL,
+            fill_price  REAL NOT NULL,
+            shares      REAL NOT NULL,
+            status      TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+            pnl_pct     REAL,
+            created_at  TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS user_nav (
+            date  TEXT PRIMARY KEY,
+            nav   REAL NOT NULL
+        );
+        """
+    )
+    conn.commit()
+
 
 def init_app(app) -> None:
     app.teardown_appcontext(close_db)
