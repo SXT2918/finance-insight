@@ -36,7 +36,7 @@ def _normalize(item: dict) -> "dict | None":
     }
 
 
-def fetch_news_for_ticker(symbol: str, limit: int = 8) -> "list[dict]":
+def fetch_news_for_ticker(symbol: str, limit: int = 10) -> "list[dict]":
     raw = yf.Ticker(symbol).news or []
     items = [_normalize(i) for i in raw[:limit]]
     return [i for i in items if i is not None]
@@ -72,6 +72,32 @@ def ingest_news_for_watchlist(conn: sqlite3.Connection) -> int:
             conn.execute(
                 "INSERT OR IGNORE INTO news_tag (news_id, tag, tag_type) VALUES (?, ?, 'ticker')",
                 (news_id, symbol),
+            )
+            count += 1
+    conn.commit()
+    return count
+
+
+GENERAL_MARKET_SOURCES = ("SPY", "QQQ", "DIA")
+
+
+def ingest_general_market_news(conn: sqlite3.Connection, limit: int = 10) -> int:
+    """Broad market headlines not tied to a single watchlist ticker, sourced
+    from major index ETFs' news feeds. Tagged tag_type='sector' (the CHECK
+    constraint only allows 'ticker'/'sector') with tag='Market' rather than
+    a real sector name, since it's a general-market bucket, not a security.
+    """
+    count = 0
+    for symbol in GENERAL_MARKET_SOURCES:
+        try:
+            items = fetch_news_for_ticker(symbol, limit=limit)
+        except Exception:
+            continue
+        for item in items:
+            news_id = _upsert_news_item(conn, item)
+            conn.execute(
+                "INSERT OR IGNORE INTO news_tag (news_id, tag, tag_type) VALUES (?, 'Market', 'sector')",
+                (news_id,),
             )
             count += 1
     conn.commit()

@@ -8,14 +8,14 @@ from app.services.sentiment import score_title
 bp = Blueprint("brief", __name__)
 
 
-def _news_list(conn, limit=12):
+def _news_list(conn, limit=30):
     rows = conn.execute(
         """
         SELECT n.id, n.title, n.source, n.published_at, s.label
         FROM news_item n
         JOIN news_tag t ON t.news_id = n.id
         LEFT JOIN news_sentiment s ON s.news_id = n.id
-        WHERE t.tag_type = 'ticker'
+        WHERE t.tag_type IN ('ticker', 'sector')
         GROUP BY n.id
         ORDER BY n.published_at DESC
         LIMIT ?

@@ -19,7 +19,7 @@ from app.config import Config
 from app.services import indicators, market_data
 from app.services.fundamentals import refresh_fundamentals_for_watchlist
 from app.services.macro_calendar import refresh_earnings_events
-from app.services.news import ingest_news_for_watchlist
+from app.services.news import ingest_general_market_news, ingest_news_for_watchlist
 from app.services.sentiment import score_unscored_news
 
 BENCHMARK = "SPY"
@@ -44,7 +44,10 @@ def run():
         time.sleep(0.3)  # be polite to the data source
 
     news_count = ingest_news_for_watchlist(conn)
-    print(f"News: {news_count} items ingested/refreshed")
+    print(f"News: {news_count} ticker items ingested/refreshed")
+
+    market_news_count = ingest_general_market_news(conn)
+    print(f"News: {market_news_count} general market items ingested/refreshed")
 
     scored = score_unscored_news(conn)
     print(f"Sentiment: scored {scored} new headlines")
