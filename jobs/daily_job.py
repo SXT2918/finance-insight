@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import db
 from app.config import Config
 from app.services import indicators, market_data
+from app.services.fundamentals import refresh_fundamentals_for_watchlist
 from app.services.macro_calendar import refresh_earnings_events
 from app.services.news import ingest_news_for_watchlist
 from app.services.sentiment import score_unscored_news
@@ -50,6 +51,9 @@ def run():
 
     events = refresh_earnings_events(conn)
     print(f"Macro calendar: {events} upcoming earnings events")
+
+    fundamentals_count = refresh_fundamentals_for_watchlist(conn)
+    print(f"Fundamentals: refreshed {fundamentals_count} tickers")
 
     conn.close()
     print("Done.")

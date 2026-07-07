@@ -1,11 +1,21 @@
 -- Finance Insight schema. Educational project; no real-money data.
 
 CREATE TABLE IF NOT EXISTS ticker (
-    symbol        TEXT PRIMARY KEY,
-    name          TEXT NOT NULL,
-    sector        TEXT,
-    is_watchlist  INTEGER NOT NULL DEFAULT 0,
-    added_at      TEXT NOT NULL
+    symbol                TEXT PRIMARY KEY,
+    name                  TEXT NOT NULL,
+    sector                TEXT,
+    is_watchlist          INTEGER NOT NULL DEFAULT 0,
+    added_at              TEXT NOT NULL,
+    market_cap            REAL,
+    trailing_pe           REAL,
+    forward_pe            REAL,
+    week52_low            REAL,
+    week52_high           REAL,
+    avg_volume            INTEGER,
+    target_mean_price     REAL,
+    recommendation_key    TEXT,
+    dividend_yield        REAL,
+    fundamentals_updated_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sector_etf (

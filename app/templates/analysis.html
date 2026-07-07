@@ -22,6 +22,28 @@
       </div>
       <button class="trade-btn" data-ticker="{{ active_symbol }}" style="margin-left:auto">Trade →</button>
     </div>
+
+    {% if fundamentals %}
+    <div class="fund-panel">
+      <div class="fund-stat"><div class="label">Market cap</div><div class="value">{{ fundamentals.market_cap or '—' }}</div></div>
+      <div class="fund-stat"><div class="label">P/E (trailing)</div><div class="value">{{ fundamentals.trailing_pe or '—' }}</div></div>
+      <div class="fund-stat"><div class="label">P/E (forward)</div><div class="value">{{ fundamentals.forward_pe or '—' }}</div></div>
+      <div class="fund-stat"><div class="label">Avg volume</div><div class="value">{{ fundamentals.avg_volume or '—' }}</div></div>
+      <div class="fund-stat"><div class="label">Dividend yield</div><div class="value">{{ fundamentals.dividend_yield or '—' }}</div></div>
+      <div class="fund-stat"><div class="label">Analyst target</div><div class="value">{{ '$%.2f'|format(fundamentals.target_mean_price) if fundamentals.target_mean_price else '—' }}</div></div>
+      <div class="fund-stat"><div class="label">Analyst rating</div><div class="value">{{ fundamentals.recommendation_key or '—' }}</div></div>
+      {% if fundamentals.week_range_pct is not none %}
+      <div class="fund-range">
+        <div class="label">52-week range</div>
+        <div class="bar"><i style="left:{{ '%.1f'|format(fundamentals.week_range_pct) }}%"></i></div>
+        <div class="labels"><span>${{ '%.2f'|format(fundamentals.week52_low) }}</span><span>${{ '%.2f'|format(fundamentals.week52_high) }}</span></div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="desk-empty" style="grid-column:1/-1">Fundamentals haven't been fetched yet for {{ active_symbol }} — populated by the daily ingestion job.</div>
+    {% endif %}
+
     <div class="case bull">
       <h3><span class="arrow">▲</span> The bull case</h3>
       <ul>{% for b in data.bull %}<li>{{ b }}</li>{% endfor %}</ul>

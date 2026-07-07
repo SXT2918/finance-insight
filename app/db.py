@@ -34,9 +34,22 @@ def init_schema(conn: sqlite3.Connection, schema_path) -> None:
 
 def migrate(conn: sqlite3.Connection) -> None:
     """Small additive migrations for DBs created before a column existed."""
-    cols = {r["name"] for r in conn.execute("PRAGMA table_info(journal_entry)").fetchall()}
-    if cols and "direction" not in cols:
+    je_cols = {r["name"] for r in conn.execute("PRAGMA table_info(journal_entry)").fetchall()}
+    if je_cols and "direction" not in je_cols:
         conn.execute("ALTER TABLE journal_entry ADD COLUMN direction TEXT NOT NULL DEFAULT 'up'")
+        conn.commit()
+
+    ticker_cols = {r["name"] for r in conn.execute("PRAGMA table_info(ticker)").fetchall()}
+    fundamentals_columns = {
+        "market_cap": "REAL", "trailing_pe": "REAL", "forward_pe": "REAL",
+        "week52_low": "REAL", "week52_high": "REAL", "avg_volume": "INTEGER",
+        "target_mean_price": "REAL", "recommendation_key": "TEXT", "dividend_yield": "REAL",
+        "fundamentals_updated_at": "TEXT",
+    }
+    if ticker_cols:
+        for col, col_type in fundamentals_columns.items():
+            if col not in ticker_cols:
+                conn.execute(f"ALTER TABLE ticker ADD COLUMN {col} {col_type}")
         conn.commit()
 
 

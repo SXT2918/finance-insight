@@ -3,6 +3,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from app import db
 from app.services import ai_desk, scorecard_data
 from app.services.analysis_data import get_analysis
+from app.services.fundamentals import build_fundamentals_view, get_fundamentals
 
 bp = Blueprint("analysis", __name__)
 
@@ -36,9 +37,11 @@ def ticker(symbol):
 
     desk = ai_desk.get_cached_desk_report(conn, symbol)
     scorecard = scorecard_data.get_scorecard(conn, symbol)
+    fundamentals = build_fundamentals_view(get_fundamentals(conn, symbol), data["price"])
 
     return render_template(
-        "analysis.html", tickers=tickers, active_symbol=symbol, data=data, desk=desk, scorecard=scorecard
+        "analysis.html", tickers=tickers, active_symbol=symbol, data=data, desk=desk,
+        scorecard=scorecard, fundamentals=fundamentals,
     )
 
 
