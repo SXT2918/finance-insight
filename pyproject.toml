@@ -1,0 +1,25 @@
+[project]
+name = "finance-insight"
+version = "0.1.0"
+description = "Educational stock-market analysis and news platform. Not investment advice."
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1",
+    "pandas>=3.0",
+    "numpy>=2.5",
+    "yfinance>=1.5",
+    "anthropic>=0.116",
+    "python-dotenv>=1.2",
+    "requests>=2.34",
+    "beautifulsoup4>=4.15",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.blueprints", "app.services", "jobs"]

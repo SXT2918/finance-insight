@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Finance Insight — data layer check</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:640px;margin:60px auto;color:#17191d}
+  h1{font-size:1.3rem}
+  table{border-collapse:collapse;width:100%;margin-top:16px}
+  td,th{padding:6px 10px;border-bottom:1px solid #e6e8eb;text-align:left;font-size:.9rem}
+  .ok{color:#008036} .error{color:#cf1322}
+  .note{color:#5c636e;font-size:.85rem;margin-top:24px}
+</style>
+</head>
+<body>
+  <h1>Finance Insight — Phase 1: data layer + ingestion</h1>
+  <p>This is a temporary check page. Real pages (Dashboard, Watchlist, ...) come in the next phases.</p>
+
+  <h2>Watchlist tickers</h2>
+  <table>
+    <tr><th>Symbol</th><th>Name</th></tr>
+    {% for t in tickers %}
+    <tr><td>{{ t.symbol }}</td><td>{{ t.name }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <h2>Recent fetch log</h2>
+  <table>
+    <tr><th>Source</th><th>Fetched at</th><th>Status</th></tr>
+    {% for f in fetch_log %}
+    <tr><td>{{ f.source }}</td><td>{{ f.fetched_at }}</td><td class="{{ 'ok' if f.status == 'ok' else 'error' }}">{{ f.status }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <p class="note">Educational project — not investment advice. Simulated data where noted.</p>
+</body>
+</html>
