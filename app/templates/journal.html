@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Journal{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Prediction journal</h2>
+    <div class="rule"></div>
+    <span class="meta">your calls, scored</span>
+  </div>
+
+  {% set best = [your_return, agent_return, spy_return] | select('number') | list %}
+  {% set best_val = best | max if best else none %}
+  <div class="vs">
+    <div class="v {{ 'lead' if your_return is not none and best_val is not none and your_return == best_val else '' }}">
+      <div class="who">YOU</div>
+      <div class="ret {{ 'd-up' if your_return is not none and your_return >= 0 else 'd-down' if your_return is not none else '' }}">{{ '%+.1f%%'|format(your_return) if your_return is not none else 'n/a' }}</div>
+      <div class="sub">avg. return across scored journal calls</div>
+    </div>
+    <div class="v {{ 'lead' if agent_return is not none and best_val is not none and agent_return == best_val else '' }}">
+      <div class="who">AGENT</div>
+      <div class="ret {{ 'd-up' if agent_return is not none and agent_return >= 0 else 'd-down' if agent_return is not none else '' }}">{{ '%+.1f%%'|format(agent_return) if agent_return is not none else 'n/a' }}</div>
+      <div class="sub">AI paper portfolio &middot; ${{ '%.0f'|format(1000) }} starting cash</div>
+    </div>
+    <div class="v {{ 'lead' if spy_return is not none and best_val is not none and spy_return == best_val else '' }}">
+      <div class="who">S&amp;P 500</div>
+      <div class="ret {{ 'd-up' if spy_return is not none and spy_return >= 0 else 'd-down' if spy_return is not none else '' }}">{{ '%+.1f%%'|format(spy_return) if spy_return is not none else 'n/a' }}</div>
+      <div class="sub">benchmark since agent inception</div>
+    </div>
+  </div>
+
+  <div class="jr-top">
+    <span class="jr-score"><b>{{ stats.hit }} / {{ stats.hit + stats.miss }}</b> calls correct</span>
+    <div class="jr-bar" role="img" aria-label="{{ '%.0f'|format(stats.accuracy_pct) if stats.accuracy_pct is not none else 0 }} percent accuracy">
+      <i style="width:{{ '%.0f'|format(stats.accuracy_pct) if stats.accuracy_pct is not none else 0 }}%"></i>
+    </div>
+    <span class="meta" style="color:var(--muted);font-size:.8rem">{{ stats.open }} open &middot; {{ stats.total }} logged total</span>
+  </div>
+
+  <div class="jr-sub">Log a new call</div>
+  <form class="panel" method="post" action="{{ url_for('journal.add') }}" style="display:grid;gap:12px;margin-bottom:26px">
+    <textarea name="thesis" placeholder="Your thesis, e.g. 'Semis outperform SPX over the next month on AI capex momentum'" required
+      style="width:100%;min-height:60px;font-family:var(--sans);font-size:.9rem;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink)"></textarea>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <label style="font-size:.8rem;color:var(--muted)">Benchmark
+        <select name="benchmark" required style="display:block;margin-top:4px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+          {% for b in benchmarks %}<option value="{{ b }}">{{ b }}</option>{% endfor %}
+        </select>
+      </label>
+      <label style="font-size:.8rem;color:var(--muted)">Predicts
+        <select name="direction" style="display:block;margin-top:4px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+          <option value="up">Rises</option>
+          <option value="down">Falls</option>
+        </select>
+      </label>
+      <label style="font-size:.8rem;color:var(--muted)">Horizon (days)
+        <input type="number" name="horizon_days" value="30" min="1" max="365" style="display:block;margin-top:4px;width:90px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+      </label>
+      <label style="font-size:.8rem;color:var(--muted)">Logged date
+        <input type="date" name="logged_date" value="{{ today }}" style="display:block;margin-top:4px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--mono)">
+      </label>
+      <button class="btn btn-primary" type="submit" style="margin-left:auto;align-self:flex-end">Log call</button>
+    </div>
+  </form>
+
+  <div class="jr-sub">Your calls</div>
+  <div class="watch journal">
+    <table>
+      <thead><tr><th>Thesis</th><th>Logged</th><th class="r">Benchmark</th><th class="r">Result</th><th class="r">Status</th></tr></thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td class="thesis">{{ e.thesis }}<br><span class="hz">horizon: {{ e.horizon_days }}d &middot; predicts {{ e.benchmark }} {{ 'rises' if e.direction == 'up' else 'falls' }}</span></td>
+          <td class="num" style="color:var(--muted);font-size:.8rem">{{ e.logged_date }}</td>
+          <td class="r num" style="font-size:.85rem;color:var(--ink-2)">{{ e.benchmark }}</td>
+          <td class="r num {{ 'd-up' if e.result_pct is not none and e.result_pct >= 0 else 'd-down' if e.result_pct is not none else '' }}" style="font-size:.85rem">
+            {{ '%+.1f%%'|format(e.result_pct) if e.result_pct is not none else '—' }}
+          </td>
+          <td class="r"><span class="badge {{ e.status }}">{{ e.status.upper() }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">No calls logged yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="jr-sub">Agent paper portfolio <span style="color:var(--muted);font-weight:400;font-size:.8rem">— simulated trades, fake cash, real lessons</span></div>
+  <form method="post" action="{{ url_for('journal.agent_run') }}" style="margin-bottom:14px">
+    <button class="btn btn-ghost" type="submit">Run agent for today</button>
+    <span class="meta" style="margin-left:10px">at most one trade per day, cached once run</span>
+  </form>
+  <div class="watch">
+    <table>
+      <thead><tr><th>Trade</th><th>Date</th><th class="r">Size</th><th class="r">Fill</th><th class="r">P&amp;L</th></tr></thead>
+      <tbody>
+        {% for t in trades %}
+        <tr>
+          <td class="tk" style="font-size:.9rem">{{ t.symbol }} &middot; {{ t.action }}</td>
+          <td class="num" style="color:var(--muted);font-size:.8rem">{{ t.trade_date }}</td>
+          <td class="r num" style="font-size:.85rem">${{ '%.2f'|format(t.size_usd) }}</td>
+          <td class="r num" style="font-size:.8rem;color:var(--muted)">{{ '%.5f'|format(t.shares) }} sh @ {{ '%.2f'|format(t.fill_price) }}</td>
+          <td class="r num {{ 'd-up' if t.pnl_pct is not none and t.pnl_pct >= 0 else 'd-down' if t.pnl_pct is not none else '' }}" style="font-size:.85rem">
+            {{ '%+.1f%%'|format(t.pnl_pct) if t.pnl_pct is not none else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px">No agent trades yet — run the agent to log its first call.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS journal_entry (
     logged_date   TEXT NOT NULL,
     benchmark     TEXT NOT NULL,
     horizon_days  INTEGER NOT NULL,
+    direction     TEXT NOT NULL DEFAULT 'up' CHECK (direction IN ('up', 'down')),
     status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'hit', 'miss')),
     result_pct    REAL,
     created_at    TEXT NOT NULL

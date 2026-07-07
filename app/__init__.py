@@ -18,7 +18,7 @@ def create_app(config_object=Config):
     from app.blueprints.analysis import bp as analysis_bp
     from app.blueprints.brief import bp as brief_bp
     from app.blueprints.media import bp as media_bp
-    from app.blueprints.stubs import journal_bp
+    from app.blueprints.journal import bp as journal_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(watchlist_bp)

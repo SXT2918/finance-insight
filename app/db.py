@@ -29,7 +29,20 @@ def init_schema(conn: sqlite3.Connection, schema_path) -> None:
     with open(schema_path, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     conn.commit()
+    migrate(conn)
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Small additive migrations for DBs created before a column existed."""
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(journal_entry)").fetchall()}
+    if cols and "direction" not in cols:
+        conn.execute("ALTER TABLE journal_entry ADD COLUMN direction TEXT NOT NULL DEFAULT 'up'")
+        conn.commit()
 
 
 def init_app(app) -> None:
     app.teardown_appcontext(close_db)
+    with app.app_context():
+        conn = connect(app.config["DATABASE_PATH"])
+        migrate(conn)
+        conn.close()
