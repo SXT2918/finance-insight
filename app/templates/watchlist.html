@@ -43,7 +43,16 @@
             <span class="rsi">—</span>
             {% endif %}
           </td>
-          <td class="r"><span class="sent">— <span class="meta">(coming soon)</span></span></td>
+          <td class="r">
+            {% if w.sentiment %}
+            <span class="sent">
+              <i style="background:{{ 'var(--up)' if w.sentiment.label == 'Bullish' else 'var(--down)' if w.sentiment.label == 'Bearish' else 'var(--amber)' }}"></i>
+              {{ w.sentiment.label }}
+            </span>
+            {% else %}
+            <span class="sent">— <span class="meta">no news yet</span></span>
+            {% endif %}
+          </td>
           <td class="r"><button class="trade-btn" data-ticker="{{ w.symbol }}">Trade →</button></td>
         </tr>
         {% endfor %}

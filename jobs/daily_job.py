@@ -1,8 +1,7 @@
-"""Daily post-close ingestion job.
-
-Phase 1 scope: fetch OHLCV for every ticker (watchlist + sector ETFs + SPY
-benchmark) and compute indicators. News/sentiment/brief generation are added
-in later phases and will be called from here too.
+"""Daily post-close ingestion job: prices -> indicators -> news -> sentiment
+-> earnings calendar. Daily brief generation is deliberately NOT triggered
+here — it's generated on demand from the Brief page to keep control over
+when the (paid) Anthropic call happens.
 
 Usage: python jobs/daily_job.py
 Schedule (cron, after US market close, ET):
@@ -18,6 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import db
 from app.config import Config
 from app.services import indicators, market_data
+from app.services.macro_calendar import refresh_earnings_events
+from app.services.news import ingest_news_for_watchlist
+from app.services.sentiment import score_unscored_news
 
 BENCHMARK = "SPY"
 
@@ -39,6 +41,15 @@ def run():
         m = indicators.compute_for_symbol(conn, sym)
         print(f"  {sym}: {n} price rows, {m} indicator rows")
         time.sleep(0.3)  # be polite to the data source
+
+    news_count = ingest_news_for_watchlist(conn)
+    print(f"News: {news_count} items ingested/refreshed")
+
+    scored = score_unscored_news(conn)
+    print(f"Sentiment: scored {scored} new headlines")
+
+    events = refresh_earnings_events(conn)
+    print(f"Macro calendar: {events} upcoming earnings events")
 
     conn.close()
     print("Done.")

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Daily brief{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Today's brief</h2>
+    <div class="rule"></div>
+    <span class="meta">generated on demand, cached once per day</span>
+  </div>
+  <div class="brief-grid">
+    <div class="digest">
+      {% if brief %}
+      <div class="stamp">GENERATED {{ brief.generated_at }}</div>
+      {% for para in brief.summary_text.split('\n\n') %}
+      <p>{{ para }}</p>
+      {% endfor %}
+      {% else %}
+      <div class="stamp">NOT YET GENERATED TODAY</div>
+      <p>No brief has been generated today. Generating calls the Anthropic API once and caches the
+        result for the rest of the day.</p>
+      <form method="post" action="{{ url_for('brief.generate') }}" style="margin-top:14px">
+        <button class="btn btn-primary" type="submit">Generate today's brief</button>
+      </form>
+      {% endif %}
+
+      <div class="newslist">
+        {% for n in news %}
+        <div class="news">
+          <span class="dot" style="background:{{ 'var(--up)' if n.label == 'bullish' else 'var(--down)' if n.label == 'bearish' else 'var(--amber)' }}"></span>
+          <div class="body">
+            <span class="h">{{ n.title }}</span>
+            <span class="src">{{ n.source }} · {{ n.label }}</span>
+          </div>
+          <div class="thumb"><img src="{{ url_for('media.news_thumb', news_id=n.id) }}" loading="lazy" alt=""></div>
+        </div>
+        {% else %}
+        <p style="color:var(--muted);padding:14px 2px">No tagged news yet — run the daily ingestion job to pull headlines.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="cal">
+      <h3>Macro calendar</h3>
+      {% for e in events %}
+      <div class="cal-row">
+        <span class="d">{{ e.date }}</span><span>{{ e.name }}</span>
+        <span class="imp {{ e.importance }}">{{ e.importance.upper() }}</span>
+      </div>
+      {% else %}
+      <p style="color:var(--muted);font-size:.85rem">No upcoming events yet — earnings dates populate once the
+        daily job runs. CPI/FOMC dates need a macro-data source not wired up in this build.</p>
+      {% endfor %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

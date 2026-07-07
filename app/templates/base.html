@@ -50,6 +50,15 @@
 </div>
 
 <main class="wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="margin-top:18px">
+      {% for category, message in messages %}
+      <div class="stale-note" style="border:1px solid var(--border-soft);border-radius:var(--r);padding:10px 14px">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
   {% block content %}{% endblock %}
 </main>
 

@@ -16,13 +16,16 @@ def create_app(config_object=Config):
     from app.blueprints.watchlist import bp as watchlist_bp
     from app.blueprints.sectors import bp as sectors_bp
     from app.blueprints.analysis import bp as analysis_bp
-    from app.blueprints.stubs import brief_bp, journal_bp
+    from app.blueprints.brief import bp as brief_bp
+    from app.blueprints.media import bp as media_bp
+    from app.blueprints.stubs import journal_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(watchlist_bp)
     app.register_blueprint(sectors_bp)
     app.register_blueprint(analysis_bp)
     app.register_blueprint(brief_bp)
+    app.register_blueprint(media_bp)
     app.register_blueprint(journal_bp)
 
     @app.context_processor

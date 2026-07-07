@@ -3,6 +3,7 @@
 import sqlite3
 
 from app.services.price_stats import get_price_and_changes
+from app.services.sentiment import get_ticker_sentiment
 
 
 def _sparkline_points(closes: "list[float]", width=112, height=28, pad=2) -> str:
@@ -55,7 +56,7 @@ def build_watchlist_rows(conn: sqlite3.Connection) -> "list[dict]":
                 "rsi": rsi,
                 "spark_points": _sparkline_points(close_vals),
                 "spark_up": close_vals[-1] >= close_vals[0],
-                "sentiment": None,  # populated once news ingestion (Phase 5) is built
+                "sentiment": get_ticker_sentiment(conn, symbol),
             }
         )
     return rows
