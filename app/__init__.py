@@ -14,7 +14,8 @@ def create_app(config_object=Config):
 
     from app.blueprints.dashboard import bp as dashboard_bp
     from app.blueprints.watchlist import bp as watchlist_bp
-    from app.blueprints.stubs import sectors_bp, analysis_bp, brief_bp, journal_bp
+    from app.blueprints.sectors import bp as sectors_bp
+    from app.blueprints.stubs import analysis_bp, brief_bp, journal_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(watchlist_bp)

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sectors{% endblock %}
+{% block content %}
+<section class="page">
+  <div class="sec-head">
+    <h2>Sector momentum</h2>
+    <div class="rule"></div>
+    <span class="meta">1-month relative move vs S&amp;P 500</span>
+  </div>
+  <div class="heat">
+    {% for r in rows %}
+    {% if r.rel_pct is not none %}
+    {% set a = [(r.rel_pct|abs) / 7, 1] | min %}
+    {% set bg = 'color-mix(in oklab, var(--up) ' ~ (8 + a*36) ~ '%, var(--surface))' if r.rel_pct >= 0 else 'color-mix(in oklab, var(--down) ' ~ (8 + a*36) ~ '%, var(--surface))' %}
+    <div class="tile" style="background:{{ bg }}" title="{{ r.name }}: {{ '%+.1f'|format(r.rel_pct) }}% vs SPX (1M)">
+      <span class="s-name">{{ r.name }}</span>
+      <span class="s-pct num">{{ '%+.1f'|format(r.rel_pct) }}%</span>
+    </div>
+    {% else %}
+    <div class="tile" style="background:var(--surface-2)" title="{{ r.name }}: not enough data yet">
+      <span class="s-name">{{ r.name }}</span>
+      <span class="s-pct num" style="color:var(--muted)">—</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <div class="heat-note">{{ heat_note }}</div>
+</section>
+{% endblock %}
