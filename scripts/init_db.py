@@ -1,4 +1,8 @@
-"""Create the SQLite database, apply schema.sql, and seed starter tickers.
+"""Create the SQLite database, apply schema.sql, and sync starter tickers.
+
+Idempotent: re-running this after editing STARTER_WATCHLIST will add new
+tickers, update names/sectors, and un-watchlist anything removed from the
+list (their price history and other rows are left alone).
 
 Usage: python scripts/init_db.py
 """
@@ -12,13 +16,47 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import db
 from app.config import Config
 
+# ~29 stocks spanning sectors, so the Watchlist/Analysis/News pages have
+# real breadth instead of just a handful of mega-cap tech names.
 STARTER_WATCHLIST = [
-    ("NVDA", "NVIDIA", "Technology"),
+    # Technology
     ("AAPL", "Apple", "Technology"),
     ("MSFT", "Microsoft", "Technology"),
+    ("NVDA", "NVIDIA", "Technology"),
+    ("GOOGL", "Alphabet", "Technology"),
+    ("META", "Meta Platforms", "Technology"),
+    ("AVGO", "Broadcom", "Technology"),
+    # Consumer Discretionary
+    ("AMZN", "Amazon", "Consumer Discretionary"),
     ("TSLA", "Tesla", "Consumer Discretionary"),
+    ("HD", "Home Depot", "Consumer Discretionary"),
+    ("MCD", "McDonald's", "Consumer Discretionary"),
+    # Financials
     ("JPM", "JPMorgan Chase", "Financials"),
-    ("XLE", "Energy Select Sector SPDR", "Energy"),
+    ("BAC", "Bank of America", "Financials"),
+    ("GS", "Goldman Sachs", "Financials"),
+    ("V", "Visa", "Financials"),
+    # Health Care
+    ("UNH", "UnitedHealth Group", "Health Care"),
+    ("JNJ", "Johnson & Johnson", "Health Care"),
+    ("LLY", "Eli Lilly", "Health Care"),
+    ("PFE", "Pfizer", "Health Care"),
+    # Energy
+    ("XOM", "Exxon Mobil", "Energy"),
+    ("CVX", "Chevron", "Energy"),
+    # Industrials
+    ("BA", "Boeing", "Industrials"),
+    ("CAT", "Caterpillar", "Industrials"),
+    ("GE", "GE Aerospace", "Industrials"),
+    # Consumer Staples
+    ("PG", "Procter & Gamble", "Consumer Staples"),
+    ("KO", "Coca-Cola", "Consumer Staples"),
+    ("WMT", "Walmart", "Consumer Staples"),
+    # Communication Services
+    ("DIS", "Walt Disney", "Communication Services"),
+    ("NFLX", "Netflix", "Communication Services"),
+    # Utilities
+    ("NEE", "NextEra Energy", "Utilities"),
 ]
 
 # The 11 SPDR sector ETFs used for the Sectors heatmap (vs SPY).
@@ -47,8 +85,16 @@ def main():
 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     conn.executemany(
-        "INSERT OR IGNORE INTO ticker (symbol, name, sector, is_watchlist, added_at) VALUES (?, ?, ?, 1, ?)",
+        """
+        INSERT INTO ticker (symbol, name, sector, is_watchlist, added_at) VALUES (?, ?, ?, 1, ?)
+        ON CONFLICT(symbol) DO UPDATE SET name = excluded.name, sector = excluded.sector, is_watchlist = 1
+        """,
         [(sym, name, sector, now) for sym, name, sector in STARTER_WATCHLIST],
+    )
+    current_symbols = [sym for sym, _, _ in STARTER_WATCHLIST]
+    conn.execute(
+        f"UPDATE ticker SET is_watchlist = 0 WHERE is_watchlist = 1 AND symbol NOT IN ({','.join('?' * len(current_symbols))})",
+        current_symbols,
     )
     conn.executemany(
         "INSERT OR IGNORE INTO sector_etf (etf_symbol, sector_name) VALUES (?, ?)",
@@ -56,10 +102,10 @@ def main():
     )
     conn.commit()
 
-    n_tickers = conn.execute("SELECT COUNT(*) FROM ticker").fetchone()[0]
+    n_tickers = conn.execute("SELECT COUNT(*) FROM ticker WHERE is_watchlist = 1").fetchone()[0]
     n_sectors = conn.execute("SELECT COUNT(*) FROM sector_etf").fetchone()[0]
     print(f"Initialized {db_path}")
-    print(f"  tickers: {n_tickers}, sector ETFs: {n_sectors}")
+    print(f"  watchlist tickers: {n_tickers}, sector ETFs: {n_sectors}")
     conn.close()
 
 
