@@ -1,13 +1,12 @@
 import sqlite3
+from pathlib import Path
 
 from flask import current_app, g
 
 
 def get_db() -> sqlite3.Connection:
     if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE_PATH"])
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        g.db = connect(current_app.config["DATABASE_PATH"])
     return g.db
 
 
@@ -19,9 +18,11 @@ def close_db(_exc=None) -> None:
 
 def connect(database_path) -> sqlite3.Connection:
     """Standalone connection for scripts/jobs that run outside a Flask app context."""
-    conn = sqlite3.connect(database_path)
+    conn = sqlite3.connect(database_path, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 10000")
+    conn.execute("PRAGMA journal_mode = WAL")
     return conn
 
 
@@ -78,6 +79,14 @@ def migrate(conn: sqlite3.Connection) -> None:
 def init_app(app) -> None:
     app.teardown_appcontext(close_db)
     with app.app_context():
-        conn = connect(app.config["DATABASE_PATH"])
-        migrate(conn)
+        database_path = Path(app.config["DATABASE_PATH"])
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = connect(database_path)
+        has_schema = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='ticker'"
+        ).fetchone()
+        if has_schema:
+            migrate(conn)
+        else:
+            init_schema(conn, Path(__file__).with_name("schema.sql"))
         conn.close()

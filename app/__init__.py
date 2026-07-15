@@ -30,6 +30,10 @@ def create_app(config_object=Config):
     app.register_blueprint(journal_bp)
     app.register_blueprint(portfolio_bp)
 
+    @app.get("/health")
+    def health():
+        return {"status": "ok", "service": "finance-insight"}
+
     @app.context_processor
     def inject_tape():
         items, stale = get_tape()

@@ -6,4 +6,5 @@ data/*.db
 data/*.db-journal
 data/img_cache/
 .pytest_cache/
+.pytest-tmp*/
 *.egg-info/

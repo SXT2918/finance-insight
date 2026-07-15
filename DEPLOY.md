@@ -16,10 +16,10 @@ commands against that same disk.
 4. **Apply**. This provisions the web service and a 1GB persistent disk mounted at
    `/var/data`, and starts `gunicorn --workers 1 --threads 4 wsgi:app`.
 
-## 2. Required one-time step: initialize the database
+## 2. Optional one-time step: seed the starter watchlist
 
-The persistent disk starts empty — `db.init_app()` only runs additive migrations, it never
-creates the tables from scratch. Skipping this step means every page 500s.
+The application creates an empty schema automatically on first start. Run the following
+step once if you want to seed the starter watchlist and sector ETFs.
 
 Once the first deploy is live, open the service in the Render dashboard → **Shell** tab
 (or **Jobs** → run a one-off command, both share the service's disk and environment) and run:

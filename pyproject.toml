@@ -4,16 +4,16 @@ version = "0.1.0"
 description = "Educational stock-market analysis and news platform. Not investment advice."
 requires-python = ">=3.11"
 dependencies = [
-    "flask>=3.1",
-    "pandas>=3.0",
-    "numpy>=2.5",
-    "yfinance>=1.5",
-    "anthropic>=0.116",
-    "python-dotenv>=1.2",
-    "requests>=2.34",
-    "beautifulsoup4>=4.15",
-    "lxml>=5.3",
-    "gunicorn>=23.0",
+    "flask>=3.1,<4",
+    "pandas>=3.0,<4",
+    "numpy>=2.5,<3",
+    "yfinance>=1.5,<2",
+    "anthropic>=0.116,<1",
+    "python-dotenv>=1.2,<2",
+    "requests>=2.34,<3",
+    "beautifulsoup4>=4.15,<5",
+    "lxml>=5.3,<7",
+    "gunicorn>=23.0,<27",
 ]
 
 [project.optional-dependencies]
